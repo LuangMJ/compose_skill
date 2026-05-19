@@ -18,6 +18,5 @@
     "kotlin-multiplatform",
     "agent-skill",
     "best-practices"
-  ],
-  "skills": "./"
+  ]
 }

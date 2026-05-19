@@ -111,15 +111,15 @@ Use this on Cursor, on older Claude Code versions without `/plugin add`, or when
 ```bash
 # Claude Code
 mkdir -p ~/.claude/skills
-ln -s "$(pwd)/jetpack-compose-audit" ~/.claude/skills/jetpack-compose-audit
+ln -s "$(pwd)/jetpack-compose-audit/skills/jetpack-compose-audit" ~/.claude/skills/jetpack-compose-audit
 
 # Codex
 mkdir -p ~/.codex/skills
-ln -s "$(pwd)" ~/.codex/skills/jetpack-compose-audit
+ln -s "$(pwd)/jetpack-compose-audit/skills/jetpack-compose-audit" ~/.codex/skills/jetpack-compose-audit
 
 # Cursor
 mkdir -p ~/.cursor/skills
-ln -s "$(pwd)/jetpack-compose-audit" ~/.cursor/skills/jetpack-compose-audit
+ln -s "$(pwd)/jetpack-compose-audit/skills/jetpack-compose-audit" ~/.cursor/skills/jetpack-compose-audit
 ```
 
 ---
@@ -200,15 +200,19 @@ Top 3 fixes
 
 ```
 jetpack-compose-audit/
-  SKILL.md                       main audit skill (process, principles, output)
-  scripts/
-    compose-reports.init.gradle  Gradle init script injected via --init-script
-  references/
-    scoring.md                   rubric with measured ceilings and inline citations
-    search-playbook.md           grep patterns, regex, read-the-file heuristics
-    canonical-sources.md         every URL the rubric cites
-    report-template.md           required structure for COMPOSE-AUDIT-REPORT.md
-    diagnostics.md               manual-mode fallback snippets
+  .claude-plugin/plugin.json     Claude Code plugin manifest
+  .cursor-plugin/plugin.json     Cursor plugin manifest
+  skills/
+    jetpack-compose-audit/
+      SKILL.md                   main audit skill (process, principles, output)
+      scripts/
+        compose-reports.init.gradle  Gradle init script injected via --init-script
+      references/
+        scoring.md               rubric with measured ceilings and inline citations
+        search-playbook.md       grep patterns, regex, read-the-file heuristics
+        canonical-sources.md     every URL the rubric cites
+        report-template.md       required structure for COMPOSE-AUDIT-REPORT.md
+        diagnostics.md           manual-mode fallback snippets
 ```
 
 A sibling skill, `compose-agent/`, ships in the same repo — see [§ Sibling skill](#sibling-skill--compose-agent) for its own layout and usage.
@@ -244,7 +248,7 @@ Same flow as the audit skill, pointing at the subdirectory.
 
 **Cursor:** import the repo as a plugin and pick `compose-agent` in the subdirectory selector.
 
-**Manual:** symlink `compose-agent/` into your skills directory (`~/.claude/skills/compose-agent`, `~/.cursor/skills/compose-agent`, etc.).
+**Manual:** symlink `compose-agent/skills/compose-agent/` into your skills directory (`~/.claude/skills/compose-agent`, `~/.cursor/skills/compose-agent`, etc.).
 
 Both skills can live side by side — they do not share state and do not interfere.
 
@@ -314,21 +318,25 @@ Overlap is fine. Audit on the release candidate, `compose-agent` on every featur
 
 ```
 compose-agent/
-  SKILL.md                       short router — loads references on demand
-  references/
-    api.md                       deprecated + soft-deprecated APIs → modern replacements
-    state.md                     hoisting, remember, rememberSaveable, ViewModel boundary
-    effects.md                   LaunchedEffect / DisposableEffect / produceState / snapshotFlow
-    performance.md               Strong Skipping, lambda modifiers, lazy keys, typed state
-    modifiers.md                 order, lambda form, Modifier.Node vs composed { }
-    navigation.md                Navigation 3 + Nav2.8 type-safe destinations
-    concurrency.md               Flow collection + lifecycle, viewModelScope, dispatchers
-    flows.md                     StateFlow / SharedFlow / cold Flow, stateIn, shareIn, flatMap variants, error handling, backpressure
-    component-api.md             parameter order, slots, naming, state hoisting shape
-    testing.md                   UI tests, semantics assertions, screenshot tests, deterministic fakes, previews
-    focus.md                     FocusRequester, keyboard / D-pad input, focus restoration, focus tests
-    kmp.md                       KMP/CMP boundaries, expect/actual, interfaces, platform leaf composables
-    kotlin.md                    Kotlin conventions + Android Kotlin style the LLM misses
+  .claude-plugin/plugin.json     Claude Code plugin manifest
+  .cursor-plugin/plugin.json     Cursor plugin manifest
+  skills/
+    compose-agent/
+      SKILL.md                   short router — loads references on demand
+      references/
+        api.md                   deprecated + soft-deprecated APIs → modern replacements
+        state.md                 hoisting, remember, rememberSaveable, ViewModel boundary
+        effects.md               LaunchedEffect / DisposableEffect / produceState / snapshotFlow
+        performance.md           Strong Skipping, lambda modifiers, lazy keys, typed state
+        modifiers.md             order, lambda form, Modifier.Node vs composed { }
+        navigation.md            Navigation 3 + Nav2.8 type-safe destinations
+        concurrency.md           Flow collection + lifecycle, viewModelScope, dispatchers
+        flows.md                 StateFlow / SharedFlow / cold Flow, stateIn, shareIn, flatMap variants, error handling, backpressure
+        component-api.md         parameter order, slots, naming, state hoisting shape
+        testing.md               UI tests, semantics assertions, screenshot tests, deterministic fakes, previews
+        focus.md                 FocusRequester, keyboard / D-pad input, focus restoration, focus tests
+        kmp.md                   KMP/CMP boundaries, expect/actual, interfaces, platform leaf composables
+        kotlin.md                Kotlin conventions + Android Kotlin style the LLM misses
 ```
 
 ---
