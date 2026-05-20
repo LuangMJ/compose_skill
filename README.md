@@ -1,6 +1,6 @@
 # Jetpack Compose Audit Skill
 
-**Version 2.1.0 · released 2026-05-12** — Added focused `compose-agent` references for UI testing, focus/keyboard navigation, and KMP/CMP boundaries. The audit now maps those surfaces as coverage notes and follow-up recommendations without changing the 0-100 scoring model.
+**Version 2.1.1 · released 2026-05-20** — Fixed Claude Code plugin loading on Windows by adopting the documented `skills/<name>/SKILL.md` plugin layout and removing the `skills: "./"` manifest override.
 
 > Find out where your Compose app is burning frames, by how much, and what to change to win them back — measured against real compiler data, not vibes.
 
@@ -12,15 +12,13 @@ Built for Claude Code, Cursor, and any agent that loads the Anthropic skill form
 
 ## What's new
 
-### 2.1.0 — 2026-05-12
+### 2.1.1 — 2026-05-20
 
-**Added — coverage for three previously explicit blind spots.**
+**Fixed — Windows plugin loading.**
 
-- **`compose-agent/references/testing.md`**: Compose UI test guidance for plain state-driven tests, semantics assertions, callback checks, screenshot tests, deterministic image/platform fakes, and previews.
-- **`compose-agent/references/focus.md`**: Focus and keyboard/D-pad navigation guidance for `FocusRequester`, `focusProperties`, key handlers, focus restoration, and focus tests.
-- **`compose-agent/references/kmp.md`**: Kotlin Multiplatform / Compose Multiplatform guidance for semantic common APIs, `expect` / `actual`, fakeable interfaces, platform leaf composables, and native interop boundaries.
-- **`jetpack-compose-audit`**: maps UI test, screenshot, focus/keyboard, and KMP/CMP surfaces as adjacent coverage notes. The four scored categories and weights remain unchanged; these areas become report notes and suggested follow-ups unless the same root cause clearly affects Performance, State, Side Effects, or Composable API Quality.
-- **Versions.** `jetpack-compose-audit` → `2.1.0`. `compose-agent` → `1.2.0`. No install-URL change. No breaking change to scoring categories, weights, or report format.
+- **Claude Code plugins**: both `compose-agent` and `jetpack-compose-audit` now use the documented `skills/<name>/SKILL.md` layout instead of a root-level skill plus `skills: "./"` in the manifest. This avoids Claude Code for Windows rejecting the plugin with `Path escapes plugin directory: ./ (skills)`.
+- **Manual installs**: symlink commands now point directly at each nested skill directory for Claude Code, Codex, and Cursor.
+- **Versions.** `jetpack-compose-audit` → `2.1.1`. `compose-agent` → `1.2.1`. No scoring, rubric, or report-format changes.
 
 For older releases see the [full Changelog](#changelog) at the bottom of this README.
 
@@ -95,7 +93,7 @@ Install directly from the Git repository — no cloning, no symlinking:
 /plugin add hamen/compose_skill --subdir jetpack-compose-audit
 ```
 
-Claude Code reads `jetpack-compose-audit/.claude-plugin/plugin.json` and registers `SKILL.md` automatically. Updates arrive via the normal plugin update flow.
+Claude Code reads `jetpack-compose-audit/.claude-plugin/plugin.json` and registers `skills/jetpack-compose-audit/SKILL.md` automatically. Updates arrive via the normal plugin update flow.
 
 ### Cursor
 
@@ -301,7 +299,7 @@ The thirteen reference files are deliberately loadable in isolation. Scoping a r
 - **Prioritized summary of up to three items**, highest impact first. Act on the chat alone if you are short on time.
 - **No nitpicks.** Clean files are not listed.
 
-An example output block is in [`compose-agent/SKILL.md`](./compose-agent/SKILL.md) under "Example Output".
+An example output block is in [`compose-agent/skills/compose-agent/SKILL.md`](./compose-agent/skills/compose-agent/SKILL.md) under "Example Output".
 
 ### `compose-agent` vs `jetpack-compose-audit`
 
@@ -342,6 +340,15 @@ compose-agent/
 ---
 
 ## Changelog
+
+### 2.1.1 — 2026-05-20
+
+**Fixed — Windows plugin loading.**
+
+- **Claude Code plugin layout**: moved both skills into `skills/<name>/SKILL.md` inside their plugin directories and removed the `skills: "./"` manifest field that Windows path normalization rejected.
+- **Manual install docs**: symlink commands now target the nested skill directories.
+- **Validation**: `claude plugin validate` now passes for both plugin subdirectories.
+- **Versions.** `jetpack-compose-audit` → `2.1.1`. `compose-agent` → `1.2.1`.
 
 ### 2.1.0 — 2026-05-12
 

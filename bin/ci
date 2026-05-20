@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+git diff --check
+
+node --input-type=module <<'NODE'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+
+function walk(dir) {
+  const out = [];
+  for (const entry of readdirSync(dir)) {
+    if (entry === '.git') continue;
+    const path = join(dir, entry);
+    const stat = statSync(path);
+    if (stat.isDirectory()) out.push(...walk(path));
+    else out.push(path.replace(/^\.\//, ''));
+  }
+  return out;
+}
+
+for (const file of walk('.').filter((path) => path.endsWith('plugin.json') || path.endsWith('marketplace.json'))) {
+  JSON.parse(readFileSync(file, 'utf8'));
+}
+
+const files = new Set(walk('.'));
+for (const file of [...files]) {
+  const parts = file.split('/');
+  for (let i = 1; i < parts.length; i++) {
+    files.add(`${parts.slice(0, i).join('/')}/`);
+  }
+}
+
+const readme = readFileSync('README.md', 'utf8');
+const missingLinks = [];
+for (const match of readme.matchAll(/\[[^\]]+\]\((\.\/?[^)#?]+)(?:#[^)]*)?\)/g)) {
+  let path = match[1].replace(/^\.\//, '');
+  if (match[1].endsWith('/') && !path.endsWith('/')) path += '/';
+  if (!files.has(path)) {
+    const line = readme.slice(0, match.index).split('\n').length;
+    missingLinks.push(`${line}: ${match[1]}`);
+  }
+}
+if (missingLinks.length) {
+  throw new Error(`Broken README relative links:\n${missingLinks.join('\n')}`);
+}
+
+const plugins = ['compose-agent', 'jetpack-compose-audit'];
+for (const plugin of plugins) {
+  const claudeManifest = JSON.parse(readFileSync(`${plugin}/.claude-plugin/plugin.json`, 'utf8'));
+  const cursorManifest = JSON.parse(readFileSync(`${plugin}/.cursor-plugin/plugin.json`, 'utf8'));
+
+  if ('skills' in claudeManifest) {
+    throw new Error(`${plugin}/.claude-plugin/plugin.json must use default skills/ discovery`);
+  }
+  if (claudeManifest.version !== cursorManifest.version) {
+    throw new Error(`${plugin} manifest versions differ`);
+  }
+  if (!existsSync(`${plugin}/skills/${plugin}/SKILL.md`)) {
+    throw new Error(`${plugin} is missing skills/${plugin}/SKILL.md`);
+  }
+}
+
+const composeSkill = readFileSync('compose-agent/skills/compose-agent/SKILL.md', 'utf8');
+const composeVersion = JSON.parse(readFileSync('compose-agent/.claude-plugin/plugin.json', 'utf8')).version;
+if (!composeSkill.includes(`version: "${composeVersion}"`)) {
+  throw new Error('compose-agent SKILL.md metadata version does not match manifest version');
+}
+
+const auditSkill = readFileSync('jetpack-compose-audit/skills/jetpack-compose-audit/SKILL.md', 'utf8');
+const auditVersion = JSON.parse(readFileSync('jetpack-compose-audit/.claude-plugin/plugin.json', 'utf8')).version;
+if (!auditSkill.includes(`**Skill version:** ${auditVersion}`)) {
+  throw new Error('jetpack-compose-audit SKILL.md version does not match manifest version');
+}
+NODE
+
+if command -v claude >/dev/null 2>&1; then
+  claude plugin validate ./compose-agent
+  claude plugin validate ./jetpack-compose-audit
+else
+  echo "warning: claude CLI not found; skipped Claude plugin validation" >&2
+fi
